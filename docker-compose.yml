@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "10000:10000"
+    environment:
+      - PORT=10000
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://mongo:27017/real_estate_crm
+      - JWT_SECRET=dev_jwt_secret_key_change_me_in_prod_12345
+      - CLIENT_URL=http://localhost:10000
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:7.0.8-jammy
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
